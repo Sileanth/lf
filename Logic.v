@@ -1097,9 +1097,34 @@ Proof.
       intros h. simpl. 
       split. apply h. simpl. left. reflexivity.
       apply IHl.
-      intros y.
+      intros x0.
+      intros z.
+      apply h.
+      simpl.
+      right.
+      exact z.
+      
     }
   }
+  { 
+    induction l.
+    {
+      intros z x h. exfalso. simpl in h. exact h.
+    }
+    {
+      intros H x0 z. 
+      destruct z. rewrite H0 in H.
+      destruct H.
+      exact H.
+      destruct H.
+      apply IHl.
+      exact H1.
+      exact H0.
+
+        
+    }
+  }
+Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, optional (combine_odd_even)
@@ -1110,8 +1135,8 @@ Proof.
     equivalent to [Podd n] when [n] is [odd] and equivalent to [Peven n]
     otherwise. *)
 
-Definition combine_odd_even (Podd Peven : nat -> Prop) : nat -> Prop
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Definition combine_odd_even (Podd Peven : nat -> Prop) : nat -> Prop :=
+  fun x => if odd x then Podd x else Peven x.
 
 (** To test your definition, prove the following facts: *)
 
@@ -1121,7 +1146,14 @@ Theorem combine_odd_even_intro :
     (odd n = false -> Peven n) ->
     combine_odd_even Podd Peven n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros O E n. 
+  intros a b.
+  unfold combine_odd_even.
+  destruct (odd n).
+  apply a. reflexivity.
+  apply b.
+  reflexivity.
+Qed.
 
 Theorem combine_odd_even_elim_odd :
   forall (Podd Peven : nat -> Prop) (n : nat),
@@ -1129,7 +1161,11 @@ Theorem combine_odd_even_elim_odd :
     odd n = true ->
     Podd n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros O E n.
+  intros h. unfold combine_odd_even in h.
+  intros c.
+  rewrite c in h. exact h.
+Qed.
 
 Theorem combine_odd_even_elim_even :
   forall (Podd Peven : nat -> Prop) (n : nat),
@@ -1137,7 +1173,10 @@ Theorem combine_odd_even_elim_even :
     odd n = false ->
     Peven n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros O E n.
+  intros h. unfold combine_odd_even in h.
+  intros c. rewrite c in h. exact h.
+Qed.
 (** [] *)
 
 (* ################################################################# *)
@@ -1441,9 +1480,35 @@ Definition tr_rev {X} (l : list X) : list X :=
 
     Prove that the two definitions are indeed equivalent. *)
 
+Lemma rev_append_nil : forall X (l1 l2 : list X), rev_append l1 l2 = rev_append l1 [] ++ l2.
+Proof.
+  intros X l1. 
+  induction l1.
+  {
+    intros l2. reflexivity.
+  }
+  {
+    intros l2.  simpl. rewrite IHl1. rewrite (IHl1 [x]). rewrite <- app_assoc. reflexivity. 
+  }
+Qed.
+
+
 Theorem tr_rev_correct : forall X, @tr_rev X = @rev X.
 Proof.
-(* FILL IN HERE *) Admitted.
+    intros X.
+    apply functional_extensionality.
+    intros xs.
+    unfold tr_rev.
+    induction xs.
+    {
+      reflexivity.
+    }
+    {
+      simpl.
+      rewrite <- IHxs. 
+      apply rev_append_nil.
+    }
+  Qed.
 (** [] *)
 
 (* ================================================================= *)
@@ -1516,12 +1581,34 @@ Proof.
   - simpl. apply IHk'.
 Qed.
 
+Lemma even_odd_s : forall n, even  (S n) = negb (even ( n)).
+Proof.
+  intros n.
+  induction n.
+  {
+    reflexivity.
+  }
+  {
+    rewrite -> IHn.
+    simpl. rewrite -> negb_involutive. reflexivity.
+  }
+Qed.
 (** **** Exercise: 3 stars, standard (even_double_conv) *)
 Lemma even_double_conv : forall n, exists k,
   n = if even n then double k else S (double k).
 Proof.
-  (* Hint: Use the [even_S] lemma from [Induction.v]. *)
-  (* FILL IN HERE *) Admitted.
+  intros n.
+  induction n.
+  + exists 0. reflexivity.
+  + rewrite -> even_S.
+    destruct (even n).
+    - simpl. destruct IHn as [k']. exists k'. rewrite -> H. reflexivity.
+    - simpl. destruct IHn as [k']. exists (S k'). rewrite -> H. simpl. reflexivity.
+Qed.
+
+
+
+  }
 (** [] *)
 
 (** Now the main theorem: *)
@@ -1685,7 +1772,11 @@ Qed.
 Theorem andb_true_iff : forall b1 b2:bool,
   b1 && b2 = true <-> b1 = true /\ b2 = true.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros b1 b2.
+  split.
+  {
+    intros h1. destruct h1.
+  }
 
 Theorem orb_true_iff : forall b1 b2,
   b1 || b2 = true <-> b1 = true \/ b2 = true.
